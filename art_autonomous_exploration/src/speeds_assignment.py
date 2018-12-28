@@ -67,30 +67,28 @@ class RobotController:
     # Produces speeds from the laser
     def produceSpeedsLaser(self):
       scan = self.laser_aggregation.laser_scan
-      linear  = 0
-      angular = 0
+      linear  = 0.
+      angular = 0.
       ############################### NOTE QUESTION ############################
       # Check what laser_scan contains and create linear and angular speeds
       # for obstacle avoidance
       SPEED = 0.3
-      UPPER_LIMIT = 10
+      UPPER_LIMIT = 5
       LOWER_LIMIT = 2
       DIRECTIONS = 3
 
       # Compute mean distance at every direction
       batch = len(scan) / DIRECTIONS
       distances = [0 for i in range(DIRECTIONS)]
-
-      for (i, sample) in enumerate(scan):
-          distances[min(i/batch, DIRECTIONS - 1)] += sample
       
       # Get distances mean
-      distances = [min(distance / batch, 10) for distance in distances[:-1]] +\
-                  [distances[-1] / batch+(len(scan) % batch)]
-      #distances[0] = sum(scan[:batch + batch/2])
-      #distances[1] = sum(scan[batch:2*batch])
-      #distances[2] = sum(scan[batch + batch/2:])
-      #print(distances)
+      exp = 2
+      distances[0] = sum(scan[:batch + int(batch/exp)]) / (batch + batch/exp)
+      distances[1] = sum(scan[batch - batch/exp:2*batch+ batch/exp])\
+                     / (batch + 2*batch/exp)
+      distances[2] = sum(scan[2*batch - int(batch/exp):])\
+                     / (batch + batch/exp + len(scan)%DIRECTIONS)
+      print(distances)
       
       # Find max distance and angular direction
       rot_dir = distances.index(max(distances)) - 1
@@ -102,6 +100,7 @@ class RobotController:
       beta = - LOWER_LIMIT*alpha
 
       linear = min(0.2956703 - 1.160235*math.e**(-0.6930465*distances[1]), SPEED)
+      #linear = min(alpha*distances[1] + beta, SPEED)
       # Speed equation between linear and angular 
       # a = 0.003968658 + 0.2959627e^(-21.30379*l)
       angular = min(-linear + SPEED, SPEED)
