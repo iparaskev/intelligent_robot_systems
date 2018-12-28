@@ -73,32 +73,40 @@ class RobotController:
       # Check what laser_scan contains and create linear and angular speeds
       # for obstacle avoidance
       SPEED = 0.3
-      UPPER_LIMIT = 5
+      UPPER_LIMIT = 10
       LOWER_LIMIT = 2
       DIRECTIONS = 3
 
       # Compute mean distance at every direction
       batch = len(scan) / DIRECTIONS
       distances = [0 for i in range(DIRECTIONS)]
-      #for i in range(DIRECTIONS):
-      #    start = i * batch
-      #    end = start + batch
-      #    sort_distances = sorted(scan[start:end])
-      #    median = (sort_distances[batch/2 - 1] + sort_distances[batch/2]) / 2
-      #    distances[i] = median
 
       for (i, sample) in enumerate(scan):
           distances[min(i/batch, DIRECTIONS - 1)] += sample
       
       # Get distances mean
-      distances = [distance / batch for distance in distances[:-1]] +\
+      distances = [min(distance / batch, 10) for distance in distances[:-1]] +\
                   [distances[-1] / batch+(len(scan) % batch)]
+      #distances[0] = sum(scan[:batch + batch/2])
+      #distances[1] = sum(scan[batch:2*batch])
+      #distances[2] = sum(scan[batch + batch/2:])
+      #print(distances)
       
-      print(distances)
       # Find max distance and angular direction
       rot_dir = distances.index(max(distances)) - 1
+      print(rot_dir)
+
+      # Linear equation between linear speed and distance from the obstacle
+      # l = a*d + b
+      alpha = SPEED/(UPPER_LIMIT-LOWER_LIMIT)
+      beta = - LOWER_LIMIT*alpha
+
+      linear = min(0.2956703 - 1.160235*math.e**(-0.6930465*distances[1]), SPEED)
       # Speed equation between linear and angular 
-      # l = 0.003968658 + 0.2959627e^(-21.30379*a)
+      # a = 0.003968658 + 0.2959627e^(-21.30379*l)
+      angular = min(-linear + SPEED, SPEED)
+      angular = angular * rot_dir
+
       ##########################################################################
       return [linear, angular]
 
