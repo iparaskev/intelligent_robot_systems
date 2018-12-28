@@ -87,13 +87,12 @@ class RobotController:
       # Get distances mean
       distances = [min(distance / batch, 10) for distance in distances[:-1]] +\
                   [distances[-1] / batch+(len(scan) % batch)]
-      #distances[0] = sum(scan[:batch + batch/2])
-      #distances[1] = sum(scan[batch:2*batch])
-      #distances[2] = sum(scan[batch + batch/2:])
-      #print(distances)
+      print(distances)
       
       # Find max distance and angular direction
       rot_dir = distances.index(max(distances)) - 1
+      if rot_dir:
+          distances[1] = (min(distances) + distances[1]) / 2
       print(rot_dir)
 
       # Linear equation between linear speed and distance from the obstacle
