@@ -72,7 +72,33 @@ class RobotController:
       ############################### NOTE QUESTION ############################
       # Check what laser_scan contains and create linear and angular speeds
       # for obstacle avoidance
+      SPEED = 0.3
+      UPPER_LIMIT = 5
+      LOWER_LIMIT = 2
+      DIRECTIONS = 3
 
+      # Compute mean distance at every direction
+      batch = len(scan) / DIRECTIONS
+      distances = [0 for i in range(DIRECTIONS)]
+      #for i in range(DIRECTIONS):
+      #    start = i * batch
+      #    end = start + batch
+      #    sort_distances = sorted(scan[start:end])
+      #    median = (sort_distances[batch/2 - 1] + sort_distances[batch/2]) / 2
+      #    distances[i] = median
+
+      for (i, sample) in enumerate(scan):
+          distances[min(i/batch, DIRECTIONS - 1)] += sample
+      
+      # Get distances mean
+      distances = [distance / batch for distance in distances[:-1]] +\
+                  [distances[-1] / batch+(len(scan) % batch)]
+      
+      print(distances)
+      # Find max distance and angular direction
+      rot_dir = distances.index(max(distances)) - 1
+      # Speed equation between linear and angular 
+      # l = 0.003968658 + 0.2959627e^(-21.30379*a)
       ##########################################################################
       return [linear, angular]
 
@@ -114,7 +140,8 @@ class RobotController:
         ############################### NOTE QUESTION ############################
         # Implement obstacle avoidance here using the laser speeds.
         # Hint: Subtract them from something constant
-        pass
+        self.linear_velocity = l_laser
+        self.angular_velocity = a_laser
         ##########################################################################
 
     # Assistive functions
