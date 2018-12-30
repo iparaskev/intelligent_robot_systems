@@ -2,7 +2,7 @@
 target_selector: 'random'
 
 # Debugging purposes
-print_velocities: False
+print_velocities: True
 
 # True for calculating targets
 # False for just wandering
