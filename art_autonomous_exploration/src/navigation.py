@@ -265,7 +265,7 @@ class Navigation:
 
     def velocitiesToNextSubtarget(self):
         
-        [linear, angular] = [0, 0]
+        [linear, angular] = [0.05, 0]
         
         [rx, ry] = [\
             self.robot_perception.robot_pose['x_px'] - \
@@ -285,6 +285,25 @@ class Navigation:
             st_x = self.subtargets[self.next_subtarget][0]
             st_y = self.subtargets[self.next_subtarget][1]
             
+            # Translate robot target coordinates to robot coordinates
+            st_xv =  (st_x - rx)*math.cos(theta) + (st_y - ry)*math.sin(theta)
+            st_yv = -(st_x - rx)*math.sin(theta) + (st_y - ry)*math.cos(theta)
+
+            # Convert target coordinates to polar
+            r_g = math.sqrt(st_xv**2 + st_yv**2)
+            ph_g = math.atan2(st_yv, st_xv)
+
+            try:
+                r_c = r_g / (2*math.sin(ph_g))
+            except ZeroDivisionError:
+                return [linear, angular]
+
+            L = r_g*ph_g / math.sin(ph_g) * self.robot_perception.resolution
+
+            dt = L / linear
+            angular = min(2*ph_g / dt, 0.3)
+            angular = max(angular, -0.3)
+
         ######################### NOTE: QUESTION  ##############################
 
         return [linear, angular]
