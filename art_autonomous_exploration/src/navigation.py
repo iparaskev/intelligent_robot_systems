@@ -265,7 +265,7 @@ class Navigation:
 
     def velocitiesToNextSubtarget(self):
         
-        [linear, angular] = [0.05, 0]
+        [linear, angular] = [0.15, 0]
         
         [rx, ry] = [\
             self.robot_perception.robot_pose['x_px'] - \
@@ -293,15 +293,28 @@ class Navigation:
             r_g = math.sqrt(st_xv**2 + st_yv**2)
             ph_g = math.atan2(st_yv, st_xv)
 
+            # Straight line
             try:
                 r_c = r_g / (2*math.sin(ph_g))
             except ZeroDivisionError:
                 return [linear, angular]
 
-            L = r_g*ph_g / math.sin(ph_g) * self.robot_perception.resolution
+            if ph_g > math.pi/2:
+                th = 2 * (ph_g - math.pi)
+                linear = -linear
+            elif ph_g < -math.pi/2:
+                th = 2 * (ph_g + math.pi)
+                linear = -linear
+            else:
+                th = 2 * ph_g
 
+
+            # The path's arc
+            L = r_c*th * self.robot_perception.resolution
+
+            # Find angular velocity from linear
             dt = L / linear
-            angular = min(2*ph_g / dt, 0.3)
+            angular = min(th / dt, 0.3)
             angular = max(angular, -0.3)
 
         ######################### NOTE: QUESTION  ##############################
