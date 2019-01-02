@@ -271,7 +271,7 @@ class Navigation:
 
     def velocitiesToNextSubtarget(self):
         
-        [linear, angular] = [0.15, 0]
+        [linear, angular] = [0, 0]
         
         [rx, ry] = [\
             self.robot_perception.robot_pose['x_px'] - \
@@ -305,15 +305,27 @@ class Navigation:
             except ZeroDivisionError:
                 return [linear, angular]
 
+            power = 2
             if ph_g > math.pi/2:
+                # Linear percentage
+                lin_prc = (1 - (math.pi - ph_g) / (math.pi/2)) ** power
+                linear = min(lin_prc * 0.3 + 0.05, 0.3)
+
                 th = 2 * (ph_g - math.pi)
                 linear = -linear
             elif ph_g < -math.pi/2:
+                # Linear percentage
+                lin_prc = (1 - (math.pi + ph_g) / (math.pi/2)) ** power
+                linear = min(lin_prc * 0.3 + 0.05, 0.3)
+
                 th = 2 * (ph_g + math.pi)
                 linear = -linear
             else:
-                th = 2 * ph_g
+                # Linear percentage
+                lin_prc = (1 - abs(ph_g) / (math.pi/2)) ** power 
+                linear = min(lin_prc * 0.3 + 0.05, 0.3)
 
+                th = 2 * ph_g
 
             # The path's arc
             L = r_c*th * self.robot_perception.resolution
