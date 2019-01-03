@@ -74,7 +74,7 @@ class RobotController:
       # for obstacle avoidance
       # Constants
       SPEED = 0.3          # Max speed value
-      UPPER_LIMIT = 4      # Min value for reducing speed
+      UPPER_LIMIT = 2      # Min value for reducing speed
       LOWER_LIMIT = 0.5      # Stop distance
       DIRECTIONS = 3       # Number of directions
 
@@ -88,16 +88,15 @@ class RobotController:
       
       # Linear equation between linear speed and distance from the obstacle
       # l = a*d + b
-      alpha = SPEED/(UPPER_LIMIT-LOWER_LIMIT)
-      beta = - LOWER_LIMIT * alpha
-      linear = min(alpha*distances[1] + beta, SPEED)
-      linear = max(linear, -SPEED)
+      alpha = SPEED / (LOWER_LIMIT-UPPER_LIMIT)
+      beta = - UPPER_LIMIT * alpha
+      linear = max(alpha*distances[1] + beta, 0)
 
       # Linear equation between angular speed and distance from obstacle
       alpha_a = SPEED/(LOWER_LIMIT - UPPER_LIMIT)
       beta_a = - UPPER_LIMIT * alpha_a
-      angular = min(max(alpha_a*distances[0] + beta_a, 0), SPEED)
-      angular -= min(max(alpha_a*distances[2] + beta_a, 0), SPEED)
+      angular = min(max(alpha_a*distances[2] + beta_a, 0), SPEED)
+      angular -= min(max(alpha_a*distances[0] + beta_a, 0), SPEED)
 
       ##########################################################################
       return [linear, angular]
@@ -134,18 +133,16 @@ class RobotController:
         ############################### NOTE QUESTION ############################
         # You must combine the two sets of speeds. You can use motor schema,
         # subsumption of whatever suits your better.
-        g_w = 3
-        l_w = 1
-        self.linear_velocity = (g_w*l_goal + l_w*l_laser) / (g_w + l_w)
-        self.angular_velocity = (g_w*a_goal + l_w*a_laser) / (g_w + l_w)
+        self.linear_velocity = l_goal - l_laser
+        self.angular_velocity = a_goal - a_laser
 
         ##########################################################################
       else:
         ############################### NOTE QUESTION ############################
         # Implement obstacle avoidance here using the laser speeds.
         # Hint: Subtract them from something constant
-        self.linear_velocity = l_laser
-        self.angular_velocity = a_laser
+        self.linear_velocity = 0.3 - l_laser
+        self.angular_velocity =  0 - a_laser
         ##########################################################################
 
     # Assistive functions
