@@ -74,33 +74,18 @@ class RobotController:
       # for obstacle avoidance
       # Constants
       SPEED = 0.3          # Max speed value
-      UPPER_LIMIT = 3      # Min value for reducing speed
-      LOWER_LIMIT = 2      # Stop distance
+      UPPER_LIMIT = 4      # Min value for reducing speed
+      LOWER_LIMIT = 0.5      # Stop distance
       DIRECTIONS = 3       # Number of directions
 
       # Compute mean distance at every direction
       batch = len(scan) / DIRECTIONS
       distances = [0 for i in range(DIRECTIONS)]
       
-      exp = 3       # Bigger range for every direction
-      distances[0] = sum(scan[:batch + int(batch/exp)]) / (batch + batch/exp)
-      distances[1] = sum(scan[batch - batch/exp:2*batch+ batch/exp])\
-                     / (batch + 2*batch/exp)
-      distances[2] = sum(scan[2*batch - int(batch/exp):])\
-                     / (batch + batch/exp + len(scan)%DIRECTIONS)
+      distances[0] = sum(scan[:batch])  / batch
+      distances[1] = sum(scan[batch:2*batch]) / batch
+      distances[2] = sum(scan[2*batch:]) / (batch + len(scan)%DIRECTIONS)
       
-      # Find max distance and angular direction
-      rot_dir = distances.index(max(distances)) - 1
-
-      ang_dir = 1
-      if distances[0] > distances[2]:
-          ang_dir = -1
-
-      # Add collision distance to the center distance
-      t = 2
-      if rot_dir:
-          distances[1] = (distances[1] + t*min(distances)) / (t+1)
-
       # Linear equation between linear speed and distance from the obstacle
       # l = a*d + b
       alpha = SPEED/(UPPER_LIMIT-LOWER_LIMIT)
@@ -111,10 +96,8 @@ class RobotController:
       # Linear equation between angular speed and distance from obstacle
       alpha_a = SPEED/(LOWER_LIMIT - UPPER_LIMIT)
       beta_a = - UPPER_LIMIT * alpha_a
-      angular = max(alpha_a*distances[1] + beta_a, 0)
-      angular = min(angular, SPEED)
-
-      angular = angular * ang_dir
+      angular = min(max(alpha_a*distances[0] + beta_a, 0), SPEED)
+      angular -= min(max(alpha_a*distances[2] + beta_a, 0), SPEED)
 
       ##########################################################################
       return [linear, angular]
@@ -153,8 +136,6 @@ class RobotController:
         # subsumption of whatever suits your better.
         g_w = 3
         l_w = 1
-        if l_goal < 0:
-            l_laser = - l_laser
         self.linear_velocity = (g_w*l_goal + l_w*l_laser) / (g_w + l_w)
         self.angular_velocity = (g_w*a_goal + l_w*a_laser) / (g_w + l_w)
 
