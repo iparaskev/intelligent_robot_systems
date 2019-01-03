@@ -74,7 +74,7 @@ class RobotController:
       # for obstacle avoidance
       # Constants
       SPEED = 0.3          # Max speed value
-      UPPER_LIMIT = 3    # Min value for reducing speed
+      UPPER_LIMIT = 3      # Min value for reducing speed
       LOWER_LIMIT = 2      # Stop distance
       DIRECTIONS = 3       # Number of directions
 
@@ -151,8 +151,8 @@ class RobotController:
         ############################### NOTE QUESTION ############################
         # You must combine the two sets of speeds. You can use motor schema,
         # subsumption of whatever suits your better.
-        g_w = 1
-        l_w = 0
+        g_w = 3
+        l_w = 1
         if l_goal < 0:
             l_laser = - l_laser
         self.linear_velocity = (g_w*l_goal + l_w*l_laser) / (g_w + l_w)
